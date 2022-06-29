@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+# MessageBird
+# Bulk: no
+# +----------------------------------------------------------------------+
+# |     _____   _____                                                    |
+# |    / __/ | / / _ |    Copyright   : (C) 2021 SVA GmbH 2021           |
+# |   _\ \ | |/ / __ |    License     : GNU General Public License v2    |
+# |  /___/ |___/_/ |_|    Author      : Carlo Kleinloog                  |
+# | Creator Benedikt Bayer for smseagle,changed by author for MessageBird|
+# +----------------------------------------------------------------------+
+# |----------------------------------------------------------------------------
+# | Name         : MessageBird
+# | Description  : Send SMS from CheckMK using cUrl
+# | Dependencies : curl
+# | Script location: /omd/sites/BIS/local/share/check_mk/notifications
+# |----------------------------------------------------------------------------
+
+import os, requests, sys, urllib3, re
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+env = os.environ
+
+# Get host phone number
+try:
+    phone = env['NOTIFY_HOST_NOTIFY_PHONE']
+except KeyError:
+    sys.stdout.write("Host does not have a phone number\n")
+    sys.exit(2)
+    
+# Get MessageBird credentials
+try:
+    messagebirdhosts = [val for key, val in env.items() if key.startswith('NOTIFY_PARAMETER_HOST_')]
+    if not messagebirdhosts:
+        sys.stdout.write("Hosts for MessageBird not configured!\n")
+        sys.exit(2)
+    message = env['NOTIFY_PARAMETER_BODY']
+    sender = env['NOTIFY_PARAMETER_ORIGINATOR']
+    accesskey = env['NOTIFY_PARAMETER_ACCESS_KEY']
+except:
+    sys.stdout.write("Credentials for MessageBird not configured!\n")
+    sys.exit(2)
+
+params = {
+    '_method': 'POST',
+    'recipients': phone,
+    'body': message,
+    'originator': sender,
+    'access_key': accesskey,
+}
+
+count = 0
+for messagebirdhost in messagebirdhosts:
+    count += 1
+    sys.stdout.write("Trying from %s\n" % messagebirdhost)
+    try:
+        url = 'https://%s/messages' % messagebirdhost
+        req = requests.get(url, params=params, timeout=20, verify=False)
+        if not req.text.find('OK'):
+            raise Exception(req.text)
+    except Exception as err:
+        sys.stdout.write("ERROR: %s\n" % err)
+        sys.stdout.write("Sending sms from %s failed! Trying next gateway.\n" % messagebirdhost)
+        if count == len(messagebirdhost):
+            sys.stdout.write("No gateway left to try. Could not send SMS!\n")
+            sys.exit(1)
+        continue
+    else:
+        sys.stdout.write("SMS Successfully sent from %s\n" % messagebirdhost)
+        sys.exit(0)        
