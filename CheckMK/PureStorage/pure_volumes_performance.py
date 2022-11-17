@@ -29,7 +29,7 @@ def parse_pure_volumes_performance(string_table):
 			'output_per_sec': output_per_sec,
 			'input_per_sec': input_per_sec,
 			'usec_per_read_op': usec_per_read_op,
-			'usec_per_write_op': usec_per_write_op 
+			'usec_per_write_op': usec_per_write_op,
 		}
 	return section
 

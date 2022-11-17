@@ -12,10 +12,19 @@ import purestorage
 import purity_fb
 import argparse
 import datetime
+from statistics import mean
+from collections import defaultdict
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from purity_fb import PurityFb, ArrayPerformance, rest
 from cmk.gui.plugins.metrics.utils import graph_info, metric_info
-
+from cmk.gui.plugins.views.perfometers.utils import (
+    perfometers,
+    render_perfometer,
+    perfometer_linear,
+    perfometer_logarithmic,
+    perfometer_logarithmic_dual,
+    perfometer_logarithmic_dual_independent,
+)
 def usage():
 	"""
 	Print Usage
@@ -170,7 +179,7 @@ def list_volumes_performance():
 	print("<<<pure_volumes_performance>>>")
 	try:
 		for perfdata in FA.list_volumes(action='monitor'):
-			print(f"{perfdata['name']} {perfdata['reads_per_sec']} {perfdata['writes_per_sec']} {perfdata['output_per_sec']} {perfdata['input_per_sec']} {perfdata['usec_per_read_op']} {perfdata['usec_per_write_op']}")
+			print(f"{perfdata['reads_per_sec']} {perfdata['writes_per_sec']} {perfdata['output_per_sec']} {perfdata['input_per_sec']} {perfdata['usec_per_read_op']} {perfdata['usec_per_write_op']}")
 	except OSError:
 		print(f"Could not get performance")
 
@@ -178,4 +187,6 @@ if __name__ == '__main__':
 	# We need to get Hardware before the volumers, in order
 	# to have more informations for the volume later
 	#get_hardware()
-	list_volumes_performance()   
+	list_volumes_performance()
+
+	

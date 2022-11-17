@@ -9,8 +9,6 @@ from .agent_based_api.v1 import (
 	Metric,
 	render,
 )
-from .pure_volumes_performance import (parse_pure_volumes_performance,
-							 discovery_pure_volumes_performance)
 							 
 def parse_pure_volumes(string_table):
 	section = {}
@@ -83,24 +81,44 @@ def check_pure_volumes(item, section):
 		
 	data = section[item]
 
-	sizesum = f"{int(float(data['size']))}"
-	totalsum = f"{int(float(data['total']))}"
-	pervolume_total_percent= (int(totalsum) / int(sizesum))
-	pervolume_total_free= (int(float(sizesum)) - int(float(totalsum)))
-	percentage_total = f"{pervolume_total_percent:.0%}"
+#max = size
+#used = total
+#free = pervolume_free= (int(sizedata) - int(totaldata))
+
+	size_available = f"{int(data['size'])}"
+	size_used = f"{int(data['total'])}"
+	volumes_data = f"{int(data['volumes'])}"
+	snapshot_data = f"{int(data['snapshots'])}"
+	thin_provisioning_data = f"{int(data['thin_provisioning'])}"
+	fs_used_percent= (int(size_used) / int(size_available))
+	fs_free= (int(size_available) - int(size_used))
+	fs_percentage_used = f"{fs_used_percent:.0%}"
+	
+	size_available_bytes = int(size_used)
+	size_free_bytes = int(fs_free)
+	size_used_bytes = int(data['total'])
+	#size_snapshot_bytes = int(snapshotdata)
+	#size_thin_provisioning_bytes = int(thin_provisioningdata)
+	
 	
 	if section[item]['snapshots'] == 'empty':
 		yield Result(
 			state=State.CRIT,
-			summary=f"CRIT, size: {render.bytes(data['size'])}, used: {render.bytes(data['total'])}, free: {render.bytes(pervolume_total_free)}, percent in use: {percentage_total}",
+			summary=f"CRIT, size: {render.bytes(data['size'])}, used: {render.bytes(data['total'])}, free: {render.bytes(fs_free)}, percent in use: {fs_percentage_used}",
 			details=f"Data Reduction: {data['data_reduction']} to 1, Total reduction: {(data['total_reduction'])} to 1, Shared Space: {render.bytes(data['shared_space'])}, Thin Provisioned: {data['thin_provisioning']}, Snapshots: {render.bytes(data['snapshots'])}, Used after deduplication: {render.bytes(data['volumes'])}",
 		)
 	else:
 		yield Result(
 			state=State.OK,
-			summary=f"OK, size: {render.bytes(data['size'])}, used: {render.bytes(data['total'])}, free: {render.bytes(pervolume_total_free)}, percent in use: {percentage_total}",
+			summary=f"OK, size: {render.bytes(data['size'])}, used: {render.bytes(data['total'])}, free: {render.bytes(fs_free)}, percent in use: {fs_percentage_used}",
 			details=f"Data Reduction: {data['data_reduction']} to 1, Total reduction: {(data['total_reduction'])} to 1, Shared Space: {render.bytes(data['shared_space'])}, Thin Provisioned: {data['thin_provisioning']}, Snapshots: {render.bytes(data['snapshots'])}, Used after deduplication: {render.bytes(data['volumes'])}",
 		)
+		yield Metric("fs_size", value=int(size_available), boundaries=(0, 100))
+		yield Metric("fs_used", value=int(size_used), boundaries=(0, 100))
+		yield Metric("fs_free", value=int(size_free_bytes), boundaries=(0, 100))
+		yield Metric("fs_used_percent", value=int(fs_used_percent), boundaries=(0, 100))
+		#yield Metric("snapshots", value=size_snapshot_bytes)
+		#yield Metric("thin_provisioning", value=size_thin_provisioning_bytes)
 
 register.check_plugin(
 	name="pure_volumes",
