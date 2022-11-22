@@ -12,19 +12,10 @@ import purestorage
 import purity_fb
 import argparse
 import datetime
-from statistics import mean
-from collections import defaultdict
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from purity_fb import PurityFb, ArrayPerformance, rest
 from cmk.gui.plugins.metrics.utils import graph_info, metric_info
-from cmk.gui.plugins.views.perfometers.utils import (
-    perfometers,
-    render_perfometer,
-    perfometer_linear,
-    perfometer_logarithmic,
-    perfometer_logarithmic_dual,
-    perfometer_logarithmic_dual_independent,
-)
+
 def usage():
 	"""
 	Print Usage
@@ -161,11 +152,25 @@ def truncate(number, decimals=0):
 	factor = 10.0 ** decimals
 	return math.trunc(number * factor) / factor
 
+#max = size
+#used = total
+#free = pervolume_free= (int(sizedata) - int(totaldata))
+#total is 	volumes data + snapshot data
+#space=true
+#action=monitor
+#serial = f"{volumes['serial'])}"
+#created = f"{volumes['created'])}"
+#size = f"{volumes['size'])}"
+#total = f"{volumes['total'])}"
+#volumes = f"{volumes['volumes'])}"
+
 def list_volumes():
-	print("<<<pure_volumes>>>")
+	print("<<<df>>>")
 	try:
 		for volume in FA.list_volumes(names=["*"], space=True):
-			print(f"{volume['name']}  {volume['size']} {volume['total']} {volume['volumes']} {volume['data_reduction']} {volume['total_reduction']} {volume['shared_space']} {volume['thin_provisioning']} {volume['snapshots']}")
+				fs_used = (int(volume['volumes']) + int(volume['snapshots']))
+				fs_free = (int(volume['size']) - int(volume['volumes']) - (volume['snapshots']))
+				print(f"{volume['name']} {int(volume['size'])} {int(fs_used)} {int(fs_free)} / {volume['name']}")
 	except OSError:
 		print(f"Could not get volumes")
 		
@@ -175,18 +180,28 @@ if __name__ == '__main__':
 	#get_hardware()
 	list_volumes()
 
-def list_volumes_performance():
-	print("<<<pure_volumes_performance>>>")
-	try:
-		for perfdata in FA.list_volumes(action='monitor'):
-			print(f"{perfdata['reads_per_sec']} {perfdata['writes_per_sec']} {perfdata['output_per_sec']} {perfdata['input_per_sec']} {perfdata['usec_per_read_op']} {perfdata['usec_per_write_op']}")
-	except OSError:
-		print(f"Could not get performance")
+#def list_details():
+#	print("<<<df>>>")
+#	try:
+#		for details in FA.list_volumes(names=["*"], space=True):
+#			print(f"{details['name']} Data Reduction: {details['data_reduction']} to 1, Total reduction: {details['total_reduction']} to 1, Shared Space: {details['shared_space']}, Thin Provisioned: {details##  #['thin_provisioning']}, Snapshots: {details['snapshots']}, Used after deduplication: {details['volumes']} / {details['name']}")
+#	except OSError:
+#		print(f"Could not get details")
 
-if __name__ == '__main__':
-	# We need to get Hardware before the volumers, in order
-	# to have more informations for the volume later
-	#get_hardware()
-	list_volumes_performance()
+#if __name__ == '__main__':
+#	# We need to get Hardware before the volumers, in order
+##	#get_hardware()
+#	list_details() 
 
-	
+#def list_perfdata():
+#	print("<<<df>>>")
+#	try:
+#		for perfdata in FA.list_volumes(names=["*"], action='monitor'):
+#				print(f"{perfdata['name']} reads_per_sec {perfdata['reads_per_sec']} writes_per_sec {perfdata['writes_per_sec']} output_per_sec {perfdata['output_per_sec']} input_per_sec;{perfdata#['input_per_sec']} read_latency{perfdata['usec_per_read_op']} write_latency {perfdata['usec_per_write_op']} / {perfdata['name']}")
+##		print(f"Could not get perfdata")
+#
+#if __name__ == '__main__':
+#	# We need to get Hardware before the volumers, in order
+#	# to have more informations for the volume later
+#	#get_hardware()
+#	list_perfdata() 
