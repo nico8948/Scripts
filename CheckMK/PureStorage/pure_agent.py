@@ -1,4 +1,5 @@
 # 2021 created by Sven Rueß, sritd.de
+#
 
 from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
