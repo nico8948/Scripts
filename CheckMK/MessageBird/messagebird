@@ -5,7 +5,7 @@
 # | Name         : MessageBird
 # | Description  : Send SMS from CheckMK using cUrl
 # | Dependencies : curl
-# | Script location: /omd/sites/nedasco/local/share/check_mk/notifications
+# | Script location: /omd/sites/SITE/local/share/check_mk/notifications
 # |----------------------------------------------------------------------------
 
 import os
