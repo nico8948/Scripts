@@ -1,5 +1,7 @@
 Build Scripts Thanks to the script creator Benedikt Bayer who created it for smseagle, Carlo Kleinloog only changed it for MessageBird 
 This script is created to send and SMS to a device that should reboot when receiving the SMS. It can also be used for notifications.
+The phone for the sms is now configured in Setup > Users -> USER -> Pager address
+The message is now a leading text, service state, description and output.  Same as the other sms plugins.
 
 1. Place the files in the proper locations. See Script location in the script. Add to monitoring configuration... X Make this variable available in notifications (enabled)
 
